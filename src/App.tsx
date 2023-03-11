@@ -1,5 +1,6 @@
 import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
 import Navbar from './components/Navbar';
 const Home = lazy(() => import('./pages/Home'));
@@ -15,6 +16,7 @@ function App() {
           <Route path='/posts' element={<Posts />} />
         </Routes>
       </div>
+      <Toaster />
     </Suspense>
   );
 }
