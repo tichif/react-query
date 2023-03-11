@@ -8,11 +8,11 @@ const Posts = () => {
   const { data, error, isLoading } = useQuery(['posts'], { queryFn: getPosts });
 
   if (isLoading) {
-    return toast.loading('Loading.....');
+    return <h2>Loading.....</h2>;
   }
 
   if (error) {
-    return toast.error('Cannot fetch post');
+    return <div className='alert alert-danger'>Cannot fetch posts</div>;
   }
 
   return (
