@@ -1,11 +1,38 @@
 import { useQuery } from 'react-query';
-import { toast } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
-
 import { getPosts } from '../lib/posts';
+import { QueryClient, useMutation } from 'react-query';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+
+const SERVER_URL = 'http://localhost:5000';
 
 const Posts = () => {
   const { data, error, isLoading } = useQuery(['posts'], { queryFn: getPosts });
+  let toastId: string;
+
+  const queryClient = new QueryClient();
+  const { mutate } = useMutation(
+    async (postId: string) => {
+      return await axios.delete(`${SERVER_URL}/posts/${postId}`);
+    },
+    {
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message, { id: toastId });
+      },
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(['posts']);
+        toast.success('Post deleted successfully', { id: toastId });
+        console.log(data);
+      },
+    }
+  );
+
+  function deleteHandler(postId: string) {
+    if (window.confirm('Are you sure ?')) {
+      toastId = toast.loading('Deleting your post', { id: toastId });
+      mutate(postId);
+    }
+  }
 
   if (isLoading) {
     return <h2>Loading.....</h2>;
@@ -26,9 +53,12 @@ const Posts = () => {
             </div>
             <div className='card-body'>
               <div className='card-text'>{post.body}</div>
-              <Link to={`/posts/${post.id}`} className='btn btn-success mt-3'>
-                View Post
-              </Link>
+              <button
+                className='btn btn-danger mt-3'
+                onClick={() => deleteHandler(post.id.toString())}
+              >
+                Delete Post
+              </button>
             </div>
           </div>
         ))}
