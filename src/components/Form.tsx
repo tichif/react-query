@@ -1,15 +1,47 @@
 import { FormEvent, useState } from 'react';
+import { useMutation, QueryClient } from 'react-query';
+import { toast } from 'react-hot-toast';
+import axios from 'axios';
+
+import { createPost } from '../lib/posts';
+const SERVER_URL = 'http://localhost:5000';
 
 const Form = () => {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  let toastPostId: string;
+  const queryClient = new QueryClient();
+
+  const { mutate } = useMutation(
+    async ({ title, body }: { title: string; body: string }) => {
+      return await axios.post(`${SERVER_URL}/posts`, {
+        id: new Date().getTime(),
+        title,
+        body,
+      });
+    },
+    {
+      onError: (error: any) => {
+        toast.error(error?.response?.data?.message, { id: toastPostId });
+        setIsSubmitting(false);
+      },
+      onSuccess: (data) => {
+        toast.success('Post created successfully', { id: toastPostId });
+        queryClient.invalidateQueries(['posts']);
+        setBody('');
+        setTitle('');
+        setIsSubmitting(false);
+        console.log(data);
+      },
+    }
+  );
 
   function submitHandler(e: FormEvent) {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log(body);
-    console.log(title);
+    toastPostId = toast.loading('Creating your post', { id: toastPostId });
+    mutate({ title, body });
   }
 
   return (
